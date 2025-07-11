@@ -1,0 +1,28 @@
+// React Avanzado - Conceptos clave
+
+// Custom Hook
+import { useState, useEffect } from 'react';
+function useFetch(url) {
+    const [data, setData] = useState(null);
+    useEffect(() => {
+        fetch(url)
+          .then(res => res.json())
+          .then(setData);
+    }, [url]);
+    return data;
+}
+
+// Context API
+import { createContext, useContext } from 'react';
+const ThemeContext = createContext("light");
+function App() {
+  return (
+    <ThemeContext.Provider value="dark">
+      <Toolbar />
+    </ThemeContext.Provider>
+  );
+}
+function Toolbar() {
+  const theme = useContext(ThemeContext);
+  return <div className={theme}>Toolbar</div>;
+}

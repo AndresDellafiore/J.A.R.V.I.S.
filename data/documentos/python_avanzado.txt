@@ -1,0 +1,39 @@
+# Python Avanzado - Conceptos clave
+
+## Decoradores
+Los decoradores son funciones que modifican el comportamiento de otras funciones.
+```python
+def decorador(func):
+    def nueva_funcion(*args, **kwargs):
+        print("Antes de la función")
+        resultado = func(*args, **kwargs)
+        print("Después de la función")
+        return resultado
+    return nueva_funcion
+
+@decorador
+def saludar(nombre):
+    print(f"Hola, {nombre}")
+```
+
+## Generadores y yield
+Los generadores permiten iterar sin cargar toda la memoria.
+```python
+def contador(max):
+    n = 0
+    while n < max:
+        yield n
+        n += 1
+```
+
+## Async / Await
+Para trabajar con operaciones asíncronas.
+```python
+import asyncio
+
+async def tarea():
+    await asyncio.sleep(1)
+    print("Tarea completada")
+
+asyncio.run(tarea())
+```

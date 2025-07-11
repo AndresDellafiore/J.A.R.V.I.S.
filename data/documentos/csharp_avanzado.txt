@@ -1,0 +1,23 @@
+// C# Avanzado - Conceptos clave
+
+// Delegados y eventos
+public delegate void MiDelegado(string mensaje);
+public class Publicador {
+    public event MiDelegado Evento;
+    public void LanzarEvento() {
+        Evento?.Invoke("Evento lanzado");
+    }
+}
+
+// LINQ
+var lista = new List<int> { 1, 2, 3, 4, 5 };
+var pares = from numero in lista
+            where numero % 2 == 0
+            select numero;
+
+// Async / Await
+public async Task<string> ObtenerDatosAsync() {
+    using HttpClient client = new HttpClient();
+    var respuesta = await client.GetStringAsync("https://api.com");
+    return respuesta;
+}

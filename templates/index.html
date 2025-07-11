@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat con Phi</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #ffffff;
+      color: #000;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+  header {          
+      padding: 0.1rem 2rem;
+      background-color: #f9f9f9;
+      border-bottom: 1px solid #ddd;
+      font-size: 1.5rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      border-radius: 8px; /* opcional, para que tenga bordes redondeados */
+    }
+
+    header span {
+      margin-right: 10px;
+    }
+
+    #chat-container {
+      flex: 1;
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin-bottom: 1rem;
+      max-width: 80%;
+      line-height: 1.5;
+    }
+
+    .user {
+      align-self: flex-end;
+      background-color: #e0e0e0; /* gris claro */
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      text-align: right;
+    } 
+
+    .ai {
+      align-self: flex-start;
+      white-space: pre-wrap;
+    }
+
+    #input-container {
+      display: flex;
+      padding: 1rem 2rem;
+      border-top: 1px solid #ddd;
+      background-color: #fff;
+    }
+
+    #message {
+      flex: 1;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-right: 1rem;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background-color: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #3730a3;
+    }
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+      background-image: linear-gradient(to left, #553c9a, #b393d3);
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+   <!--  <span>🤖</span> Chat con Phi -->
+    <h1>I.S.
+    <p></p>
+   Intelligence System</h1>
+  </header>
+
+  <div id="chat-container"></div>
+
+  <div id="input-container">
+    <input id="message" type="text" placeholder="Escribí algo..." autocomplete="off" />
+    <button onclick="sendMessage()">Enviar</button>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const messageInput = document.getElementById("message");
+      const message = messageInput.value.trim();
+
+      if (message === "") return;
+
+      appendMessage("user", message);
+      messageInput.value = "";
+
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await res.json();
+      appendMessage("ai", data.response);
+    }
+
+    function appendMessage(sender, text) {
+      const chat = document.getElementById("chat-container");
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+      msg.textContent = text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Aquí agregamos el evento para capturar Enter
+    document.getElementById("message").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault(); // Evita salto de línea si fuera textarea
+        sendMessage();
+      }
+    });
+  </script>
+
+</body>
+</html>
