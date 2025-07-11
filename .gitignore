@@ -1,4 +1,14 @@
-# Excluir archivos de entorno
+# Archivos de entorno
 .env
 .env.local
 .env*.local
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# Dependencias
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store  (macOS)
