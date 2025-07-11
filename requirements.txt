@@ -2,8 +2,7 @@ PyPDF2
 fastapi>=0.95.0
 uvicorn>=0.22.0
 ollama>=0.1.20
-opencv-python>=4.7.0
-mediapipe>=0.10.0
+opencv-python>=4.7.0  # Para AR básico (sin MediaPipe)
 pyttsx3>=2.90
 speechrecognition>=3.10.0
 python-dotenv>=1.0.0
