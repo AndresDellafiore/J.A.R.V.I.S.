@@ -1,14 +1,15 @@
-# Archivos de entorno
-.env
-.env.local
-.env*.local
-
-# Editor/IDE
-.vscode/
-.idea/
-
-# Dependencias
-node_modules/
+# Byte-compiled
 __pycache__/
 *.pyc
-.DS_Store  (macOS)
+
+# Virtual environment
+venv/
+.env
+
+# Model files
+*.bin
+*.gguf
+*.pth
+
+# Logs
+logs/

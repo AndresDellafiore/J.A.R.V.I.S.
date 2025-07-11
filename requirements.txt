@@ -1,1 +1,11 @@
 PyPDF2
+fastapi>=0.95.0
+uvicorn>=0.22.0
+ollama>=0.1.20
+opencv-python>=4.7.0
+mediapipe>=0.10.0
+pyttsx3>=2.90
+speechrecognition>=3.10.0
+python-dotenv>=1.0.0
+websockets>=11.0.0
+llama-index>=0.8.0
