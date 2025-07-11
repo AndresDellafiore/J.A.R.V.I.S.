@@ -1,0 +1,4 @@
+# Excluir archivos de entorno
+.env
+.env.local
+.env*.local
