@@ -34,3 +34,17 @@ Traceback (most recent call last):
     raise ValueError("Formato de API key inválido")
 ValueError: Formato de API key inválido
 2025-07-22 01:30:35,785 - __main__ - INFO - === Sistema finalizado ===
+2025-07-22 01:36:10,242 - __main__ - INFO - === Iniciando J.A.R.V.I.S ===
+2025-07-22 01:36:10,331 - comtypes.client._code_cache - INFO - Imported existing <module 'comtypes.gen' from 'C:\\Users\\Desarrollo\\AppData\\Roaming\\Python\\Python313\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-07-22 01:36:10,332 - comtypes.client._code_cache - INFO - Using writeable comtypes cache directory: 'C:\Users\Desarrollo\AppData\Roaming\Python\Python313\site-packages\comtypes\gen'
+2025-07-22 01:36:10,652 - __main__ - CRITICAL - Error crítico: Formato de API key inválido
+Traceback (most recent call last):
+  File "C:\JARVIS\main.py", line 82, in main
+    weather = WeatherModule(api_key="TU_API_KEY")  # Reemplazar con tu API key real
+  File "C:\JARVIS\backend\modules\weather.py", line 27, in __init__
+    self._validate_api_key()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\JARVIS\backend\modules\weather.py", line 40, in _validate_api_key
+    raise ValueError("Formato de API key inválido")
+ValueError: Formato de API key inválido
+2025-07-22 01:36:14,974 - __main__ - INFO - === Sistema finalizado ===
