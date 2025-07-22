@@ -1,0 +1,22 @@
+2025-07-22 01:18:33,506 - __main__ - INFO - === Iniciando J.A.R.V.I.S ===
+2025-07-22 01:18:34,003 - comtypes.client._code_cache - INFO - Imported existing <module 'comtypes.gen' from 'C:\\Users\\Desarrollo\\AppData\\Roaming\\Python\\Python313\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-07-22 01:18:34,004 - comtypes.client._code_cache - INFO - Using writeable comtypes cache directory: 'C:\Users\Desarrollo\AppData\Roaming\Python\Python313\site-packages\comtypes\gen'
+2025-07-22 01:18:34,632 - __main__ - CRITICAL - Error crítico: Debes proporcionar una API key válida de OpenWeather
+Traceback (most recent call last):
+  File "C:\JARVIS\main.py", line 82, in main
+    weather = WeatherModule(api_key="TU_API_KEY")  # Reemplazar con tu API key real
+  File "C:\JARVIS\backend\modules\weather.py", line 8, in __init__
+    raise ValueError("Debes proporcionar una API key válida de OpenWeather")
+ValueError: Debes proporcionar una API key válida de OpenWeather
+2025-07-22 01:18:39,008 - __main__ - INFO - === Sistema finalizado ===
+2025-07-22 01:19:50,020 - __main__ - INFO - === Iniciando J.A.R.V.I.S ===
+2025-07-22 01:19:50,115 - comtypes.client._code_cache - INFO - Imported existing <module 'comtypes.gen' from 'C:\\Users\\Desarrollo\\AppData\\Roaming\\Python\\Python313\\site-packages\\comtypes\\gen\\__init__.py'>
+2025-07-22 01:19:50,115 - comtypes.client._code_cache - INFO - Using writeable comtypes cache directory: 'C:\Users\Desarrollo\AppData\Roaming\Python\Python313\site-packages\comtypes\gen'
+2025-07-22 01:19:50,362 - __main__ - CRITICAL - Error crítico: Debes proporcionar una API key válida de OpenWeather
+Traceback (most recent call last):
+  File "C:\JARVIS\main.py", line 82, in main
+    weather = WeatherModule(api_key="TU_API_KEY")  # Reemplazar con tu API key real
+  File "C:\JARVIS\backend\modules\weather.py", line 8, in __init__
+    raise ValueError("Debes proporcionar una API key válida de OpenWeather")
+ValueError: Debes proporcionar una API key válida de OpenWeather
+2025-07-22 01:19:54,679 - __main__ - INFO - === Sistema finalizado ===
