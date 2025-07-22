@@ -4,7 +4,7 @@ Módulos de funcionalidades específicas
 Actualmente incluye:
 - WeatherModule: Obtención de datos meteorológicos
 """
-from .weather import WeatherModule
+from weather import WeatherModule
 
 __all__ = ['WeatherModule']
 

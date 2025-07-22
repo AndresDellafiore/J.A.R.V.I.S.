@@ -1,4 +1,37 @@
+import sys
 import os
+
+# SOLUCIÓN DEFINITIVA - Configuración de paths para estructura con backend
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BACKEND_DIR = os.path.join(BASE_DIR, 'backend')
+MODULES_DIR = os.path.join(BACKEND_DIR, 'modules')
+
+# Agregamos las rutas necesarias al path de Python
+sys.path.extend([BASE_DIR, BACKEND_DIR, MODULES_DIR])
+
+# Verificación de paths (opcional, puede eliminarse después)
+print("\nRutas de búsqueda configuradas:")
+for path in sys.path:
+    print(f" - {path}")
+
+# Importación robusta de módulos
+try:
+    from backend.modules.weather import WeatherModule
+    from backend.modules.news import NewsModule
+except ImportError as e:
+    print(f"\nError en importación: {str(e)}")
+    print("Fallando a importación alternativa...")
+    try:
+        from modules.weather import WeatherModule
+        from modules.news import NewsModule
+    except ImportError:
+        print("¡No se pudo importar los módulos!")
+        print("Por favor verifica que los archivos existan en:")
+        print(f" - {os.path.join(MODULES_DIR, 'weather.py')}")
+        print(f" - {os.path.join(MODULES_DIR, 'news.py')}")
+        raise
+
+# Resto de imports
 import json
 import speech_recognition as sr
 import pyttsx3
@@ -9,8 +42,6 @@ import random
 import threading
 from difflib import SequenceMatcher
 from jarvis_gui import JARVISGUI
-from modules.weather import WeatherModule
-from modules.news import NewsModule
 
 # Configuración inicial
 CONFIG = {
@@ -184,8 +215,6 @@ class JARVIS:
         
         except Exception as e:
             self.speak("Estoy teniendo problemas técnicos. Por favor inténtalo más tarde.")
-
-    # ... (resto de los métodos de comandos básicos se mantienen igual)
 
     def show_gui(self):
         """Muestra la interfaz gráfica"""
