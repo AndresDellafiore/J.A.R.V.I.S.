@@ -2,22 +2,20 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext
 from PIL import Image, ImageTk
 import os
+import queue
 import threading
 
 class JARVISGUI:
-    def __init__(self, jarvis):
+    def __init__(self, jarvis, gui_queue):
         self.jarvis = jarvis
+        self.gui_queue = gui_queue
         self.root = tk.Tk()
         self.root.title("J.A.R.V.I.S - Sistema Inteligente")
         self.root.geometry("900x600")
-        self.root.configure(bg='#0a0a1a')
+        self.root.protocol("WM_DELETE_WINDOW", self.exit_program)
         
         # Configuración de estilo
-        self.style = ttk.Style()
-        self.style.theme_use('clam')
-        self.style.configure('TFrame', background='#0a0a1a')
-        self.style.configure('TLabel', background='#0a0a1a', foreground='#00ffcc', font=('Courier New', 12))
-        self.style.configure('TButton', background='#003333', foreground='#00ffcc', font=('Courier New', 10))
+        self.configure_styles()
         
         # Cargar assets
         self.load_assets()
@@ -25,29 +23,33 @@ class JARVISGUI:
         # Crear interfaz
         self.create_interface()
         
-        # Variables de animación
-        self.animating = False
-        self.animation_frames = []
-        self.current_animation_frame = 0
-        self.load_animation_frames()
-        
+        # Procesar actualizaciones de la cola
+        self.root.after(100, self.process_updates)
+
+    def configure_styles(self):
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
+        self.style.configure('TFrame', background='#0a0a1a')
+        self.style.configure('TLabel', background='#0a0a1a', foreground='#00ffcc', 
+                           font=('Courier New', 12))
+        self.style.configure('TButton', background='#003333', foreground='#00ffcc', 
+                           font=('Courier New', 10))
+
     def load_assets(self):
-        # Cargar imágenes (debes tener estas imágenes en una carpeta assets/)
         try:
             self.logo_img = ImageTk.PhotoImage(Image.open("assets/jarvis_logo.png").resize((200, 200)))
             self.bg_img = ImageTk.PhotoImage(Image.open("assets/iron_man_bg.jpg").resize((900, 600)))
         except:
-            # Imágenes por defecto si no se encuentran los archivos
             self.logo_img = None
             self.bg_img = None
-    
-    def load_animation_frames(self):
-        # Cargar frames de animación (simulado)
-        self.animation_frames = ["frame1", "frame2", "frame3", "frame4"]
-    
+
     def create_interface(self):
         # Fondo
-        self.bg_label = tk.Label(self.root, image=self.bg_img)
+        bg_color = '#0a0a1a'
+        if self.bg_img:
+            self.bg_label = tk.Label(self.root, image=self.bg_img)
+        else:
+            self.bg_label = tk.Label(self.root, bg=bg_color)
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
         
         # Marco principal
@@ -111,67 +113,71 @@ class JARVISGUI:
         )
         self.exit_btn.pack(side='left', padx=10)
         
-        # Configurar grid weights
+        # Configurar grid
         self.main_frame.grid_rowconfigure(0, weight=1)
         self.main_frame.grid_rowconfigure(1, weight=1)
         self.main_frame.grid_columnconfigure(1, weight=1)
-    
+
+    def process_updates(self):
+        """Procesa las actualizaciones de la cola en el hilo principal"""
+        try:
+            while True:
+                method, args, kwargs = self.gui_queue.get_nowait()
+                if hasattr(self, method):
+                    getattr(self, method)(*args, **kwargs)
+        except queue.Empty:
+            pass
+        self.root.after(100, self.process_updates)
+
     def display_message(self, sender, message, is_user=False):
         self.display_text.configure(state='normal')
-        
-        if is_user:
-            self.display_text.insert(tk.END, f"Usuario: {message}\n", 'user')
-        else:
-            self.display_text.insert(tk.END, f"JARVIS: {message}\n", 'jarvis')
-        
+        tag = 'user' if is_user else 'jarvis'
+        self.display_text.insert(tk.END, f"{sender}: {message}\n", tag)
         self.display_text.configure(state='disabled')
         self.display_text.see(tk.END)
-    
-    def update_status(self, message):
-        self.status_label.config(text=f"Estado: {message}")
-    
+
+    def update_status(self, text):
+        self.status_label.config(text=f"Estado: {text}")
+
     def animate_speech(self, speaking):
         if speaking:
-            self.animating = True
-            threading.Thread(target=self._speech_animation, daemon=True).start()
+            self.current_color = 0
+            self.speech_animation()
         else:
-            self.animating = False
-    
-    def _speech_animation(self):
-        while self.animating:
-            # Simular animación cambiando el color del logo
-            colors = ['#ff0000', '#ff6600', '#ffcc00', '#00ff00', '#0066ff', '#6600ff']
-            for color in colors:
-                if not self.animating:
-                    break
-                self.logo_label.config(bg=color)
-                self.root.update()
-                self.root.after(100)
-        
-        # Restaurar color original
-        self.logo_label.config(bg='black')
-    
+            if hasattr(self, 'anim_id'):
+                self.root.after_cancel(self.anim_id)
+            self.logo_label.config(bg='black')
+
+    def speech_animation(self):
+        colors = ['#ff0000', '#ff6600', '#ffcc00', '#00ff00', '#0066ff', '#6600ff']
+        self.logo_label.config(bg=colors[self.current_color])
+        self.current_color = (self.current_color + 1) % len(colors)
+        self.anim_id = self.root.after(100, self.speech_animation)
+
     def start_listening(self):
-        threading.Thread(target=self.jarvis.listen, daemon=True).start()
-    
+        if self.jarvis:
+            threading.Thread(target=self.jarvis.listen, daemon=True).start()
+
     def show_settings(self):
         # Implementar ventana de configuración
         pass
-    
+
     def exit_program(self):
-        self.jarvis.running = False
+        if self.jarvis:
+            self.jarvis.running = False
         self.root.destroy()
-    
+
     def show_interface(self):
         self.root.deiconify()
-    
+
     def hide_interface(self):
         self.root.withdraw()
-    
+
     def run(self):
         self.root.mainloop()
 
 if __name__ == "__main__":
     # Para pruebas
-    gui = JARVISGUI(None)
+    gui_queue = queue.Queue()
+    gui = JARVISGUI(None, gui_queue)
     gui.run()

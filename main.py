@@ -1,238 +1,177 @@
-import sys
+import tkinter as tk
+from tkinter import ttk, scrolledtext
+from PIL import Image, ImageTk
 import os
-
-# SOLUCIÓN DEFINITIVA - Configuración de paths para estructura con backend
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-BACKEND_DIR = os.path.join(BASE_DIR, 'backend')
-MODULES_DIR = os.path.join(BACKEND_DIR, 'modules')
-
-# Agregamos las rutas necesarias al path de Python
-sys.path.extend([BASE_DIR, BACKEND_DIR, MODULES_DIR])
-
-# Verificación de paths (opcional, puede eliminarse después)
-print("\nRutas de búsqueda configuradas:")
-for path in sys.path:
-    print(f" - {path}")
-
-# Importación robusta de módulos
-try:
-    from backend.modules.weather import WeatherModule
-    from backend.modules.news import NewsModule
-except ImportError as e:
-    print(f"\nError en importación: {str(e)}")
-    print("Fallando a importación alternativa...")
-    try:
-        from modules.weather import WeatherModule
-        from modules.news import NewsModule
-    except ImportError:
-        print("¡No se pudo importar los módulos!")
-        print("Por favor verifica que los archivos existan en:")
-        print(f" - {os.path.join(MODULES_DIR, 'weather.py')}")
-        print(f" - {os.path.join(MODULES_DIR, 'news.py')}")
-        raise
-
-# Resto de imports
-import json
-import speech_recognition as sr
-import pyttsx3
-import datetime
-import webbrowser
-import requests
-import random
 import threading
-from difflib import SequenceMatcher
-from jarvis_gui import JARVISGUI
 
-# Configuración inicial
-CONFIG = {
-    "nombre": "JARVIS",
-    "hotword": "hola jarvis",
-    "api_keys": {
-        "openweather": "7246...ab1b",
-        "deepseek": "tu_api_key_deepseek"
-    },
-    "umbral_similitud": 0.7,
-    "tiempo_espera": 5,
-    "modelo_ia": "deepseek-chat",
-    "modo_silencioso": False,
-    "usar_modulos": True
-}
-
-KNOWLEDGE_FILE = "knowledge_base.json"
-
-class JARVIS:
-    def __init__(self):
-        self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
-        self.engine = pyttsx3.init()
-        self.voices = self.engine.getProperty('voices')
-        self.engine.setProperty('voice', self.voices[0].id)
-        self.engine.setProperty('rate', 150)
-        self.running = True
-        self.learning_mode = False
-        self.current_command = ""
+class JARVISGUI:
+    def __init__(self, jarvis):
+        self.jarvis = jarvis
+        self.root = tk.Tk()
+        self.root.title("J.A.R.V.I.S - Sistema Inteligente")
+        self.root.geometry("900x600")
+        self.root.configure(bg='#0a0a1a')
         
-        # Inicializar GUI
-        self.gui = JARVISGUI(self)
+        # Configuración de estilo
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
+        self.style.configure('TFrame', background='#0a0a1a')
+        self.style.configure('TLabel', background='#0a0a1a', foreground='#00ffcc', font=('Courier New', 12))
+        self.style.configure('TButton', background='#003333', foreground='#00ffcc', font=('Courier New', 10))
         
-        # Cargar conocimiento base
-        self.knowledge_base = self.load_knowledge()
+        # Cargar assets
+        self.load_assets()
         
-        # Inicializar módulos
-        if CONFIG["usar_modulos"]:
-            self.weather_module = WeatherModule()
-            self.news_module = NewsModule()
+        # Crear interfaz
+        self.create_interface()
         
-        # Comandos básicos
-        self.basic_commands = {
-            "hola": self.respond_hello,
-            "cómo estás": self.respond_status,
-            "qué hora es": self.respond_time,
-            "abre navegador": self.open_browser,
-            "apágate": self.shutdown,
-            "modo aprendizaje": self.toggle_learning,
-            "busca en internet": self.search_web,
-            "clima": self.weather_report,
-            "noticias": self.news_report,
-            "gracias": self.respond_thanks,
-            "qué puedes hacer": self.list_capabilities,
-            "reproduce": self.play_music,
-            "dime un chiste": self.tell_joke,
-            "abre la interfaz": self.show_gui,
-            "minimiza la interfaz": self.hide_gui
-        }
+        # Variables de animación
+        self.animating = False
+        self.animation_frames = []
+        self.current_animation_frame = 0
+        self.load_animation_frames()
         
-        self.gui.update_status("Sistema listo. Di 'hola JARVIS' para comenzar.")
-
-    def load_knowledge(self):
+    def load_assets(self):
+        # Cargar imágenes (debes tener estas imágenes en una carpeta assets/)
         try:
-            with open(KNOWLEDGE_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            base = {"comandos": {}, "respuestas": {}, "datos": {}}
-            self.save_knowledge(base)
-            return base
+            self.logo_img = ImageTk.PhotoImage(Image.open("assets/jarvis_logo.png").resize((200, 200)))
+            self.bg_img = ImageTk.PhotoImage(Image.open("assets/iron_man_bg.jpg").resize((900, 600)))
+        except:
+            # Imágenes por defecto si no se encuentran los archivos
+            self.logo_img = None
+            self.bg_img = None
     
-    def save_knowledge(self, data=None):
-        with open(KNOWLEDGE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data or self.knowledge_base, f, ensure_ascii=False, indent=2)
+    def load_animation_frames(self):
+        # Cargar frames de animación (simulado)
+        self.animation_frames = ["frame1", "frame2", "frame3", "frame4"]
     
-    def speak(self, text):
-        self.gui.display_message("JARVIS", text, is_user=False)
-        if not CONFIG["modo_silencioso"]:
-            self.engine.say(text)
-            self.engine.runAndWait()
-            self.gui.animate_speech(False)
+    def create_interface(self):
+        # Fondo
+        self.bg_label = tk.Label(self.root, image=self.bg_img)
+        self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        
+        # Marco principal
+        self.main_frame = ttk.Frame(self.root)
+        self.main_frame.place(relx=0.5, rely=0.5, anchor='center', width=800, height=500)
+        
+        # Logo
+        self.logo_label = tk.Label(self.main_frame, image=self.logo_img, bg='black')
+        self.logo_label.grid(row=0, column=0, padx=20, pady=10, sticky='nw')
+        
+        # Panel de visualización
+        self.display_frame = ttk.Frame(self.main_frame)
+        self.display_frame.grid(row=0, column=1, rowspan=2, padx=20, pady=10, sticky='nsew')
+        
+        self.display_text = scrolledtext.ScrolledText(
+            self.display_frame,
+            wrap=tk.WORD,
+            width=60,
+            height=20,
+            bg='black',
+            fg='#00ffcc',
+            font=('Courier New', 12),
+            insertbackground='#00ffcc'
+        )
+        self.display_text.pack(fill='both', expand=True)
+        self.display_text.configure(state='disabled')
+        
+        # Panel de estado
+        self.status_frame = ttk.Frame(self.main_frame)
+        self.status_frame.grid(row=1, column=0, padx=20, pady=10, sticky='sw')
+        
+        self.status_label = ttk.Label(
+            self.status_frame,
+            text="Estado: Inicializando...",
+            font=('Courier New', 10)
+        )
+        self.status_label.pack()
+        
+        # Panel de controles
+        self.control_frame = ttk.Frame(self.main_frame)
+        self.control_frame.grid(row=2, column=0, columnspan=2, pady=20)
+        
+        self.listen_btn = ttk.Button(
+            self.control_frame,
+            text="Escuchar",
+            command=self.start_listening
+        )
+        self.listen_btn.pack(side='left', padx=10)
+        
+        self.settings_btn = ttk.Button(
+            self.control_frame,
+            text="Configuración",
+            command=self.show_settings
+        )
+        self.settings_btn.pack(side='left', padx=10)
+        
+        self.exit_btn = ttk.Button(
+            self.control_frame,
+            text="Salir",
+            command=self.exit_program
+        )
+        self.exit_btn.pack(side='left', padx=10)
+        
+        # Configurar grid weights
+        self.main_frame.grid_rowconfigure(0, weight=1)
+        self.main_frame.grid_rowconfigure(1, weight=1)
+        self.main_frame.grid_columnconfigure(1, weight=1)
     
-    def listen(self):
-        with self.microphone as source:
-            self.gui.update_status("Escuchando...")
-            self.recognizer.adjust_for_ambient_noise(source)
-            try:
-                audio = self.recognizer.listen(source, timeout=CONFIG["tiempo_espera"])
-                command = self.recognizer.recognize_google(audio, language="es-ES").lower()
-                self.gui.display_message("Usuario", command, is_user=True)
-                return command
-            except sr.WaitTimeoutError:
-                self.gui.update_status("Tiempo de espera agotado")
-                return None
-            except sr.UnknownValueError:
-                self.gui.update_status("No se entendió el audio")
-                return None
-            except Exception as e:
-                self.gui.update_status(f"Error: {str(e)}")
-                return None
-    
-    def process_command(self, command):
-        self.current_command = command
+    def display_message(self, sender, message, is_user=False):
+        self.display_text.configure(state='normal')
         
-        if command.startswith(CONFIG["hotword"]):
-            command = command.replace(CONFIG["hotword"], "").strip()
-        
-        if not command:
-            return
-        
-        best_match, score = self.find_best_match(command, self.basic_commands.keys())
-        
-        if score > CONFIG["umbral_similitud"]:
-            self.basic_commands[best_match]()
-        elif command in self.knowledge_base["comandos"]:
-            self.speak(self.knowledge_base["comandos"][command])
-        elif self.learning_mode:
-            self.learn_response(command)
+        if is_user:
+            self.display_text.insert(tk.END, f"Usuario: {message}\n", 'user')
         else:
-            self.consult_ai(command)
+            self.display_text.insert(tk.END, f"JARVIS: {message}\n", 'jarvis')
+        
+        self.display_text.configure(state='disabled')
+        self.display_text.see(tk.END)
     
-    def find_best_match(self, command, options):
-        best_match = ""
-        best_score = 0.0
-        
-        for option in options:
-            score = SequenceMatcher(None, command, option).ratio()
-            if score > best_score:
-                best_score = score
-                best_match = option
-        
-        return best_match, best_score
+    def update_status(self, message):
+        self.status_label.config(text=f"Estado: {message}")
     
-    def learn_response(self, command):
-        self.speak(f"No sé cómo responder a '{command}'. ¿Cómo debería responder?")
-        response = self.listen()
-        
-        if response:
-            self.knowledge_base["comandos"][command] = response
-            self.save_knowledge()
-            self.speak("Respuesta aprendida. Gracias por enseñarme.")
+    def animate_speech(self, speaking):
+        if speaking:
+            self.animating = True
+            threading.Thread(target=self._speech_animation, daemon=True).start()
+        else:
+            self.animating = False
     
-    def consult_ai(self, query):
-        self.speak("Consultando con mi red de conocimiento...")
+    def _speech_animation(self):
+        while self.animating:
+            # Simular animación cambiando el color del logo
+            colors = ['#ff0000', '#ff6600', '#ffcc00', '#00ff00', '#0066ff', '#6600ff']
+            for color in colors:
+                if not self.animating:
+                    break
+                self.logo_label.config(bg=color)
+                self.root.update()
+                self.root.after(100)
         
-        try:
-            headers = {
-                "Authorization": f"Bearer {CONFIG['api_keys']['deepseek']}",
-                "Content-Type": "application/json"
-            }
-            
-            data = {
-                "model": CONFIG["modelo_ia"],
-                "messages": [{"role": "user", "content": query}],
-                "temperature": 0.7
-            }
-            
-            response = requests.post(
-                "https://api.deepseek.com/v1/chat/completions",
-                headers=headers,
-                json=data
-            )
-            
-            if response.status_code == 200:
-                ai_response = response.json()["choices"][0]["message"]["content"]
-                self.speak(ai_response)
-                self.knowledge_base["respuestas"][query] = ai_response
-                self.save_knowledge()
-            else:
-                self.speak("Lo siento, no pude conectar con mi red de conocimiento.")
-        
-        except Exception as e:
-            self.speak("Estoy teniendo problemas técnicos. Por favor inténtalo más tarde.")
-
-    def show_gui(self):
-        """Muestra la interfaz gráfica"""
-        self.gui.show_interface()
+        # Restaurar color original
+        self.logo_label.config(bg='black')
     
-    def hide_gui(self):
-        """Minimiza la interfaz gráfica"""
-        self.gui.hide_interface()
-
+    def start_listening(self):
+        threading.Thread(target=self.jarvis.listen, daemon=True).start()
+    
+    def show_settings(self):
+        # Implementar ventana de configuración
+        pass
+    
+    def exit_program(self):
+        self.jarvis.running = False
+        self.root.destroy()
+    
+    def show_interface(self):
+        self.root.deiconify()
+    
+    def hide_interface(self):
+        self.root.withdraw()
+    
     def run(self):
-        """Ejecuta el bucle principal"""
-        threading.Thread(target=self.gui.run, daemon=True).start()
-        
-        while self.running:
-            command = self.listen()
-            if command:
-                self.process_command(command)
+        self.root.mainloop()
 
 if __name__ == "__main__":
-    jarvis = JARVIS()
-    jarvis.run()
+    # Para pruebas
+    gui = JARVISGUI(None)
+    gui.run()
