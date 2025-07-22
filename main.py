@@ -1,15 +1,24 @@
+import sys
+from pathlib import Path
+
+# Añade la ruta del backend al sistema para imports
+sys.path.append(str(Path(__file__).parent / "backend"))
+
 from core.voice_engine import VoiceEngine
-from core.brain import process_command
+from modules.weather import WeatherModule
 
 def main():
-    engine = VoiceEngine()
-    engine.speak("Sistema iniciado. ¿En qué puedo ayudarte?")
+    print("Iniciando J.A.R.V.I.S...")
+    voice = VoiceEngine()
+    weather = WeatherModule()
+    
+    voice.speak("Sistema listo")
     
     while True:
-        command = engine.listen()
-        if "hola jarvis" in command:
-            response = process_command(command)
-            engine.speak(response)
+        command = voice.listen().lower()
+        if "clima" in command:
+            response = weather.get_weather("Buenos Aires")  # Ejemplo
+            voice.speak(response)
 
 if __name__ == "__main__":
     main()
