@@ -1,6 +1,5 @@
 """
-Módulo de Clima Mejorado para Windows - J.A.R.V.I.S.
-Con carga robusta de variables de entorno
+Módulo de Clima Mejorado - Carga Confiable de API Keys
 """
 import os
 import requests
@@ -10,68 +9,51 @@ from pathlib import Path
 from backend.core.exceptions import APIError
 
 class WeatherModule:
-   def __init__(self, api_key: Optional[str] = None):
-    """Carga mejorada para Windows con manejo de permisos"""
-    try:
-        # 1. Intenta cargar desde parámetro
-        if api_key and api_key != "TU_API_KEY":
-            self.api_key = api_key.strip()
-            return
-            
-        # 2. Carga desde .env con ruta absoluta
-        env_path = r"C:\jarvis\.env"
-        if os.path.exists(env_path):
-            from dotenv import load_dotenv
-            try:
-                load_dotenv(dotenv_path=env_path, override=True, encoding='utf-8')
-                self.api_key = os.getenv("OPENWEATHER_API_KEY", "").strip()
-                if self.api_key:
-                    return
-            except PermissionError:
-                print("⚠️ Error de permisos al leer .env")
-                
-        # 3. Fallback seguro
-        raise ValueError(
-            "No se pudo cargar OPENWEATHER_API_KEY\n"
-            "Solución:\n"
-            "1. Verifica que el archivo C:\jarvis\.env exista\n"
-            "2. Asegúrate que contenga: OPENWEATHER_API_KEY=tu_clave\n"
-            "3. Ejecuta como Admin: icacls \"C:\jarvis\.env\" /grant \"Todos:(R)\""
-        )
+    def __init__(self, api_key: Optional[str] = None):
+        # Configuración de rutas para Windows
+        self.base_url = "https://api.openweathermap.org/data/2.5/weather"
+        self.cache = {}
+        self.cache_duration = timedelta(minutes=30)
         
-    except Exception as e:
-        print(f"🚨 Error crítico: {str(e)}")
-        raise
+        # Carga la API key con validación múltiple
+        self.api_key = self._load_api_key(api_key)
+        print(f"✅ API Key cargada: {self._mask_key(self.api_key)}")
 
     def _load_api_key(self, api_key: Optional[str]) -> str:
-        """Carga la API key con validación para Windows"""
-        # Intenta cargar desde parámetro
+        """Carga la clave con 4 métodos de respaldo"""
+        # 1. Intenta desde parámetro
         if api_key and api_key != "TU_API_KEY":
-            return api_key.strip('"\' ')
-            
-        # Intenta cargar desde .env (ruta absoluta para Windows)
+            return api_key.strip()
+
+        # 2. Intenta desde .env (ruta absoluta)
         env_path = Path.cwd() / '.env'
         if env_path.exists():
             from dotenv import load_dotenv
-            load_dotenv(dotenv_path=env_path, override=True)
-            print(f"📁 .env cargado desde: {env_path}")
-            
-        # Obtiene de variables de entorno
-        key = os.getenv("OPENWEATHER_API_KEY")
-        if not key:
-            raise ValueError(
-                "No se encontró OPENWEATHER_API_KEY\n"
-                f"Ruta buscada: {env_path}\n"
-                "Solución:\n"
-                "1. Crea un archivo .env en C:\\jarvis\n"
-                "2. Agrega: OPENWEATHER_API_KEY=tu_clave_sin_comillas\n"
-                "3. Reinicia la terminal"
-            )
-        return key.strip('"\' ')
+            try:
+                load_dotenv(dotenv_path=env_path, override=True, encoding='utf-8')
+                if key := os.getenv("OPENWEATHER_API_KEY"):
+                    return key.strip()
+            except Exception as e:
+                print(f"⚠️ Error cargando .env: {str(e)}")
+
+        # 3. Intenta desde variables de entorno del sistema
+        if key := os.environ.get("OPENWEATHER_API_KEY"):
+            return key.strip()
+
+        # 4. Fallback seguro
+        raise ValueError(
+            "No se pudo cargar OPENWEATHER_API_KEY\n"
+            f"Ruta .env verificada: {env_path}\n"
+            "Solución:\n"
+            "1. Verifica que el archivo .env existe\n"
+            "2. Contenido debe ser: OPENWEATHER_API_KEY=tu_clave\n"
+            "3. Sin comillas o espacios\n"
+            "4. Ejecuta: icacls \"C:\\JARVIS\\.env\" /grant \"Todos:(R)\""
+        )
 
     def _mask_key(self, key: str) -> str:
-        """Oculta parte de la clave para debug seguro"""
-        return f"{key[:4]}...{key[-4:]}" if key else "None"
+        """Muestra solo partes de la clave para seguridad"""
+        return f"{key[:4]}...{key[-4:]}" if key else "[NO HAY CLAVE]"
 
     def _validate_api_key(self):
         """Valida el formato de la API key."""
