@@ -23,6 +23,7 @@ class WeatherModule:
                     2. Archivo .env
         """
         self.api_key = api_key or os.getenv("OPENWEATHER_API_KEY")
+        print(f"DEBUG - Clave cargada: {self.api_key}")  # Para verificación
         self._validate_api_key()
         self.base_url = "https://api.openweathermap.org/data/2.5/weather"
         self.cache = {}
