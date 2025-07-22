@@ -10,17 +10,38 @@ from pathlib import Path
 from backend.core.exceptions import APIError
 
 class WeatherModule:
-    def __init__(self, api_key: Optional[str] = None):
-        """Configuración mejorada para Windows"""
-        # 1. Carga la clave con prioridad:
-        #    - Parámetro > Variable de entorno > .env
-        self.api_key = self._load_api_key(api_key)
-        print(f"🔑 Key usada: {self._mask_key(self.api_key)}")  # Debug seguro
+   def __init__(self, api_key: Optional[str] = None):
+    """Carga mejorada para Windows con manejo de permisos"""
+    try:
+        # 1. Intenta cargar desde parámetro
+        if api_key and api_key != "TU_API_KEY":
+            self.api_key = api_key.strip()
+            return
+            
+        # 2. Carga desde .env con ruta absoluta
+        env_path = r"C:\jarvis\.env"
+        if os.path.exists(env_path):
+            from dotenv import load_dotenv
+            try:
+                load_dotenv(dotenv_path=env_path, override=True, encoding='utf-8')
+                self.api_key = os.getenv("OPENWEATHER_API_KEY", "").strip()
+                if self.api_key:
+                    return
+            except PermissionError:
+                print("⚠️ Error de permisos al leer .env")
+                
+        # 3. Fallback seguro
+        raise ValueError(
+            "No se pudo cargar OPENWEATHER_API_KEY\n"
+            "Solución:\n"
+            "1. Verifica que el archivo C:\jarvis\.env exista\n"
+            "2. Asegúrate que contenga: OPENWEATHER_API_KEY=tu_clave\n"
+            "3. Ejecuta como Admin: icacls \"C:\jarvis\.env\" /grant \"Todos:(R)\""
+        )
         
-        # 2. Configuración base
-        self.base_url = "https://api.openweathermap.org/data/2.5/weather"
-        self.cache = {}
-        self.cache_duration = timedelta(minutes=30)
+    except Exception as e:
+        print(f"🚨 Error crítico: {str(e)}")
+        raise
 
     def _load_api_key(self, api_key: Optional[str]) -> str:
         """Carga la API key con validación para Windows"""
