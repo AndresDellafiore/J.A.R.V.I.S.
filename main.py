@@ -1,107 +1,57 @@
-#!/usr/bin/env python3
-"""
-Punto de entrada principal para J.A.R.V.I.S.
-Controla el flujo del asistente e integra todos los módulos.
-"""
 import sys
+import random
 from pathlib import Path
-import logging
-from backend import VoiceEngine, WeatherModule
-from backend.core.exceptions import APIError, VoiceRecognitionError
-
-# Configuración básica de logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('jarvis.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-
-def setup_environment():
-    """Configura rutas y variables de entorno."""
-    sys.path.append(str(Path(__file__).parent))
-    try:
-        from dotenv import load_dotenv
-        load_dotenv()
-    except ImportError:
-        logger.warning("python-dotenv no está instalado, usando variables de entorno del sistema")
-
-def handle_command(command: str, voice: VoiceEngine, weather: WeatherModule) -> bool:
-    """
-    Procesa comandos y ejecuta acciones correspondientes.
-    
-    Args:
-        command: Comando de voz reconocido
-        voice: Instancia de VoiceEngine
-        weather: Instancia de WeatherModule
-        
-    Returns:
-        bool: True si se debe continuar ejecutando, False para salir
-    """
-    command = command.lower().strip()
-    
-    if not command:
-        return True
-        
-    if "hola jarvis" in command:
-        voice.speak("¿En qué puedo ayudarte?")
-        return True
-        
-    elif "clima" in command:
-        try:
-            # Extracción básica de ciudad (mejorable con NLP)
-            city = "Buenos Aires"  # Por defecto
-            if " en " in command:
-                city = command.split(" en ")[1].split(" ")[0]
-            
-            response = weather.get_weather(city)
-            voice.speak(response)
-        except APIError as e:
-            voice.speak(f"No pude obtener el clima. Error: {str(e)}")
-            logger.error(f"Weather API Error: {str(e)}")
-        return True
-        
-    elif "salir" in command or "terminar" in command:
-        voice.speak("Hasta luego, señor.")
-        return False
-        
-    else:
-        voice.speak("No entendí ese comando. Prueba con 'clima' o 'salir'")
-        return True
+from backend.core.voice_engine import VoiceEngine
+from backend.modules.weather import WeatherModule
 
 def main():
-    """Función principal de ejecución."""
-    setup_environment()
-    
     try:
-        logger.info("=== Iniciando J.A.R.V.I.S ===")
+        print("=== Iniciando J.A.R.V.I.S ===")
         voice = VoiceEngine()
-       weather = WeatherModule()  #  API key real en archivo .env
+        weather = WeatherModule()
         
-        voice.speak("Sistema inicializado. Di 'Hola JARVIS' para comenzar.")
-        logger.info("Sistema listo, escuchando comandos...")
+        voice.speak("Sistema listo. Di 'hola JARVIS' para comenzar.")
         
-        running = True
-        while running:
-            try:
-                command = voice.listen()
-                running = handle_command(command, voice, weather)
-                
-            except VoiceRecognitionError as e:
-                logger.warning(f"Error en reconocimiento: {str(e)}")
+        while True:
+            command = voice.listen()
+            if not command:
                 continue
                 
+            # Sistema de comandos mejorado
+            if any(palabra in command for palabra in ["hola", "buenos días", "buenas tardes"]):
+                responses = [
+                    "¡Hola humano! ¿En qué puedo ayudarte?",
+                    "¡Buenas! Dime tus órdenes",
+                    "Sistema operativo listo"
+                ]
+                voice.speak(random.choice(responses))
+                
+            elif "clima" in command or "tiempo" in command:
+                city = "Buenos Aires"  # Puedes extraer la ciudad del comando
+                response = weather.get_weather(city)
+                voice.speak(response)
+                
+            elif any(palabra in command for palabra in ["quién eres", "presentate"]):
+                voice.speak("Soy JARVIS, tu asistente virtual. Versión 2.0")
+                
+            elif "abre" in command or "inicia" in command:
+                if "chrome" in command:
+                    os.startfile("chrome.exe")
+                    voice.speak("Abriendo navegador Chrome")
+                # Añade más apps aquí
+                
+            else:
+                unknown_responses = [
+                    "No entendí ese comando",
+                    "Mis capacidades son limitadas, prueba con 'clima' o 'abrir navegador'",
+                    "Reconfigura mi matriz de comandos, no entendí eso"
+                ]
+                voice.speak(random.choice(unknown_responses))
+                
     except KeyboardInterrupt:
-        logger.info("Sistema detenido por el usuario")
-        voice.speak("Apagando sistema.")
+        print("\n=== Sistema detenido ===")
     except Exception as e:
-        logger.critical(f"Error crítico: {str(e)}", exc_info=True)
-        voice.speak("Se produjo un error grave. Revisa los logs.")
-    finally:
-        logger.info("=== Sistema finalizado ===")
+        print(f"Error crítico: {str(e)}")
 
 if __name__ == "__main__":
     main()
