@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 from PIL import Image, ImageTk
-import os
 import queue
 import threading
 
@@ -95,7 +94,7 @@ class JARVISGUI:
         self.listen_btn = ttk.Button(
             self.control_frame,
             text="Escuchar",
-            command=self.start_listening
+            command=self.start_listening_thread
         )
         self.listen_btn.pack(side='left', padx=10)
         
@@ -154,7 +153,8 @@ class JARVISGUI:
         self.current_color = (self.current_color + 1) % len(colors)
         self.anim_id = self.root.after(100, self.speech_animation)
 
-    def start_listening(self):
+    def start_listening_thread(self):
+        """Inicia el reconocimiento de voz en un hilo separado"""
         if self.jarvis:
             threading.Thread(target=self.jarvis.listen, daemon=True).start()
 
