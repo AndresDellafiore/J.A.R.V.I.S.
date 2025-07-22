@@ -79,7 +79,7 @@ def main():
     try:
         logger.info("=== Iniciando J.A.R.V.I.S ===")
         voice = VoiceEngine()
-        weather = WeatherModule(api_key="TU_API_KEY")  # Reemplazar con tu API key real
+       weather = WeatherModule()  #  API key real en archivo .env
         
         voice.speak("Sistema inicializado. Di 'Hola JARVIS' para comenzar.")
         logger.info("Sistema listo, escuchando comandos...")
