@@ -1,9 +1,55 @@
 import sys
 import os
 
-# Configuración de paths
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(BASE_DIR)
+# Configuración automática de paths
+def setup_paths():
+    """Configura los paths de importación dinámicamente"""
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    sys.path.extend([
+        BASE_DIR,
+        os.path.join(BASE_DIR, 'backend'),
+        os.path.join(BASE_DIR, 'backend', 'modules'),
+        os.path.join(BASE_DIR, 'backend', 'core')
+    ])
+
+setup_paths()
+
+# Ahora las importaciones funcionarán desde cualquier lugar
+try:
+    from backend.modules.voice_engine import VoiceEngine
+    from backend.core.weather import WeatherModule
+    from backend.core.news import NewsModule
+    from backend.core.system import SystemModule
+    from backend.core.spotify import SpotifyModule
+    from jarvis_gui import JARVISGUI
+    from user_manager import UserManager
+    from config import load_config
+except ImportError as e:
+    print(f"Error de importación: {e}")
+    print("Estructura de archivos esperada:")
+    print("""
+    C:/JARVIS/
+    ├── main.py
+    ├── jarvis_gui.py
+    ├── user_manager.py
+    ├── config.py
+    ├── backend/
+    │   ├── __init__.py
+    │   ├── modules/
+    │   │   ├── __init__.py
+    │   │   ├── commands.py
+    │   │   ├── exceptions.py
+    │   │   └── voice_engine.py
+    │   └── core/
+    │       ├── __init__.py
+    │       ├── weather.py
+    │       ├── news.py
+    │       ├── system.py
+    │       └── spotify.py
+    └── assets/
+        └── logo.png
+    """)
+    sys.exit(1)
 
 # Importaciones corregidas según tu estructura
 from backend.modules.voice_engine import VoiceEngine
