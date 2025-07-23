@@ -1,183 +1,142 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext
+from tkinter import scrolledtext, font as tkfont
 from PIL import Image, ImageTk
-import queue
-import threading
 
 class JARVISGUI:
-    def __init__(self, jarvis, gui_queue):
+    def __init__(self, jarvis):
         self.jarvis = jarvis
-        self.gui_queue = gui_queue
         self.root = tk.Tk()
-        self.root.title("J.A.R.V.I.S - Sistema Inteligente")
-        self.root.geometry("900x600")
-        self.root.protocol("WM_DELETE_WINDOW", self.exit_program)
+        self.root.title("J.A.R.V.I.S. - Just A Rather Very Intelligent System")
+        self.root.geometry("1000x700")
+        self.root.configure(bg="#0a0a0a")
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         
         # Configuración de estilo
-        self.configure_styles()
-        
-        # Cargar assets
-        self.load_assets()
-        
-        # Crear interfaz
-        self.create_interface()
-        
-        # Procesar actualizaciones de la cola
+        self.setup_style()
+        self.setup_ui()
         self.root.after(100, self.process_updates)
 
-    def configure_styles(self):
-        self.style = ttk.Style()
-        self.style.theme_use('clam')
-        self.style.configure('TFrame', background='#0a0a1a')
-        self.style.configure('TLabel', background='#0a0a1a', foreground='#00ffcc', 
-                           font=('Courier New', 12))
-        self.style.configure('TButton', background='#003333', foreground='#00ffcc', 
-                           font=('Courier New', 10))
+    def setup_style(self):
+        """Configura los estilos visuales"""
+        self.title_font = tkfont.Font(family="Helvetica", size=18, weight="bold")
+        self.text_font = tkfont.Font(family="Consolas", size=12)
+        self.status_font = tkfont.Font(family="Helvetica", size=10)
+        
+        # Colores estilo Iron Man
+        self.primary_color = "#52B2E0"  # Azul JARVIS
+        self.secondary_color = "#FF4C4C"  # Rojo acento
+        self.bg_color = "#0a0a0a"
+        self.text_bg = "#1a1a1a"
+        self.text_fg = "#ffffff"
 
-    def load_assets(self):
+    def setup_ui(self):
+        """Configura los elementos de la interfaz gráfica"""
+        # Frame principal
+        main_frame = tk.Frame(self.root, bg=self.bg_color)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Cabecera con logo
+        self.setup_header(main_frame)
+        
+        # Área de conversación
+        self.setup_conversation_area(main_frame)
+        
+        # Barra de estado
+        self.setup_status_bar(main_frame)
+
+    def setup_header(self, parent):
+        """Configura la cabecera con logo"""
+        header_frame = tk.Frame(parent, bg="#121212")
+        header_frame.pack(fill=tk.X, pady=(0, 10))
+        
         try:
-            self.logo_img = ImageTk.PhotoImage(Image.open("assets/jarvis_logo.png").resize((200, 200)))
-            self.bg_img = ImageTk.PhotoImage(Image.open("assets/iron_man_bg.jpg").resize((900, 600)))
+            img = Image.open("assets/logo.png")
+            img = img.resize((80, 80), Image.Resampling.LANCZOS)
+            self.logo = ImageTk.PhotoImage(img)
+            logo_label = tk.Label(header_frame, image=self.logo, bg="#121212")
+            logo_label.pack(side=tk.LEFT, padx=10)
         except:
-            self.logo_img = None
-            self.bg_img = None
-
-    def create_interface(self):
-        # Fondo
-        bg_color = '#0a0a1a'
-        if self.bg_img:
-            self.bg_label = tk.Label(self.root, image=self.bg_img)
-        else:
-            self.bg_label = tk.Label(self.root, bg=bg_color)
-        self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
-        
-        # Marco principal
-        self.main_frame = ttk.Frame(self.root)
-        self.main_frame.place(relx=0.5, rely=0.5, anchor='center', width=800, height=500)
-        
-        # Logo
-        self.logo_label = tk.Label(self.main_frame, image=self.logo_img, bg='black')
-        self.logo_label.grid(row=0, column=0, padx=20, pady=10, sticky='nw')
-        
-        # Panel de visualización
-        self.display_frame = ttk.Frame(self.main_frame)
-        self.display_frame.grid(row=0, column=1, rowspan=2, padx=20, pady=10, sticky='nsew')
-        
-        self.display_text = scrolledtext.ScrolledText(
-            self.display_frame,
-            wrap=tk.WORD,
-            width=60,
-            height=20,
-            bg='black',
-            fg='#00ffcc',
-            font=('Courier New', 12),
-            insertbackground='#00ffcc'
-        )
-        self.display_text.pack(fill='both', expand=True)
-        self.display_text.configure(state='disabled')
-        
-        # Panel de estado
-        self.status_frame = ttk.Frame(self.main_frame)
-        self.status_frame.grid(row=1, column=0, padx=20, pady=10, sticky='sw')
-        
-        self.status_label = ttk.Label(
-            self.status_frame,
-            text="Estado: Inicializando...",
-            font=('Courier New', 10)
-        )
-        self.status_label.pack()
-        
-        # Panel de controles
-        self.control_frame = ttk.Frame(self.main_frame)
-        self.control_frame.grid(row=2, column=0, columnspan=2, pady=20)
-        
-        self.listen_btn = ttk.Button(
-            self.control_frame,
-            text="Escuchar",
-            command=self.start_listening_thread
-        )
-        self.listen_btn.pack(side='left', padx=10)
-        
-        self.settings_btn = ttk.Button(
-            self.control_frame,
-            text="Configuración",
-            command=self.show_settings
-        )
-        self.settings_btn.pack(side='left', padx=10)
-        
-        self.exit_btn = ttk.Button(
-            self.control_frame,
-            text="Salir",
-            command=self.exit_program
-        )
-        self.exit_btn.pack(side='left', padx=10)
-        
-        # Configurar grid
-        self.main_frame.grid_rowconfigure(0, weight=1)
-        self.main_frame.grid_rowconfigure(1, weight=1)
-        self.main_frame.grid_columnconfigure(1, weight=1)
-
-    def process_updates(self):
-        """Procesa las actualizaciones de la cola en el hilo principal"""
-        try:
-            while True:
-                method, args, kwargs = self.gui_queue.get_nowait()
-                if hasattr(self, method):
-                    getattr(self, method)(*args, **kwargs)
-        except queue.Empty:
             pass
-        self.root.after(100, self.process_updates)
+        
+        title_label = tk.Label(
+            header_frame, 
+            text="J.A.R.V.I.S. - Just A Rather Very Intelligent System",
+            font=self.title_font,
+            fg=self.primary_color,
+            bg="#121212"
+        )
+        title_label.pack(side=tk.LEFT, padx=10)
 
-    def display_message(self, sender, message, is_user=False):
-        self.display_text.configure(state='normal')
-        tag = 'user' if is_user else 'jarvis'
-        self.display_text.insert(tk.END, f"{sender}: {message}\n", tag)
-        self.display_text.configure(state='disabled')
-        self.display_text.see(tk.END)
+    def setup_conversation_area(self, parent):
+        """Configura el área de conversación"""
+        conv_frame = tk.Frame(parent, bg=self.bg_color)
+        conv_frame.pack(fill=tk.BOTH, expand=True)
+        
+        self.text_area = scrolledtext.ScrolledText(
+            conv_frame,
+            wrap=tk.WORD,
+            width=80,
+            height=25,
+            font=self.text_font,
+            bg=self.text_bg,
+            fg=self.text_fg,
+            insertbackground="white",
+            padx=10,
+            pady=10
+        )
+        self.text_area.pack(fill=tk.BOTH, expand=True)
+        self.text_area.config(state=tk.DISABLED)
+        
+        # Configurar tags para diferentes tipos de mensajes
+        self.text_area.tag_config("jarvis", foreground=self.primary_color)
+        self.text_area.tag_config("user", foreground="#ffffff")
+        self.text_area.tag_config("system", foreground="#888888")
+
+    def setup_status_bar(self, parent):
+        """Configura la barra de estado"""
+        self.status_var = tk.StringVar()
+        self.status_var.set("Sistema iniciado - Esperando comandos")
+        
+        status_bar = tk.Label(
+            parent,
+            textvariable=self.status_var,
+            relief=tk.SUNKEN,
+            anchor=tk.W,
+            font=self.status_font,
+            fg=self.text_fg,
+            bg="#121212",
+            padx=10
+        )
+        status_bar.pack(fill=tk.X, pady=(10, 0))
+
+    def update_display(self, text):
+        """Actualiza el área de texto con nuevo contenido"""
+        self.text_area.config(state=tk.NORMAL)
+        
+        if text.startswith("JARVIS:"):
+            self.text_area.insert(tk.END, text + "\n", "jarvis")
+        elif text.startswith("Usuario:"):
+            self.text_area.insert(tk.END, text + "\n", "user")
+        else:
+            self.text_area.insert(tk.END, text + "\n", "system")
+            
+        self.text_area.config(state=tk.DISABLED)
+        self.text_area.see(tk.END)
 
     def update_status(self, text):
-        self.status_label.config(text=f"Estado: {text}")
+        """Actualiza la barra de estado"""
+        self.status_var.set(text)
+        self.root.update()
 
-    def animate_speech(self, speaking):
-        if speaking:
-            self.current_color = 0
-            self.speech_animation()
-        else:
-            if hasattr(self, 'anim_id'):
-                self.root.after_cancel(self.anim_id)
-            self.logo_label.config(bg='black')
+    def process_updates(self):
+        """Procesa actualizaciones periódicas"""
+        if hasattr(self, 'root') and self.root.winfo_exists():
+            self.root.after(100, self.process_updates)
 
-    def speech_animation(self):
-        colors = ['#ff0000', '#ff6600', '#ffcc00', '#00ff00', '#0066ff', '#6600ff']
-        self.logo_label.config(bg=colors[self.current_color])
-        self.current_color = (self.current_color + 1) % len(colors)
-        self.anim_id = self.root.after(100, self.speech_animation)
-
-    def start_listening_thread(self):
-        """Inicia el reconocimiento de voz en un hilo separado"""
-        if self.jarvis:
-            threading.Thread(target=self.jarvis.listen, daemon=True).start()
-
-    def show_settings(self):
-        # Implementar ventana de configuración
-        pass
-
-    def exit_program(self):
-        if self.jarvis:
-            self.jarvis.running = False
-        self.root.destroy()
-
-    def show_interface(self):
-        self.root.deiconify()
-
-    def hide_interface(self):
-        self.root.withdraw()
+    def on_close(self):
+        """Maneja el cierre de la ventana"""
+        self.jarvis.shutdown()
 
     def run(self):
+        """Inicia la interfaz gráfica"""
         self.root.mainloop()
-
-if __name__ == "__main__":
-    # Para pruebas
-    gui_queue = queue.Queue()
-    gui = JARVISGUI(None, gui_queue)
-    gui.run()

@@ -37,7 +37,8 @@ class WeatherModule:
         """Oculta parte de la clave para logs"""
         return f"{key[:4]}...{key[-4:]}" if key else "[NO KEY]"
 
-    def get_weather(self, city: str) -> str:
+    def get_weather(self, location):
+    #def get_weather(self, city: str) -> str:
         """Obtiene clima con manejo de errores mejorado"""
         try:
             params = {
@@ -58,4 +59,5 @@ class WeatherModule:
             )
             
         except requests.exceptions.RequestException as e:
-            return f"No pude obtener el clima. Error: {str(e)}"
+           # return f"No pude obtener el clima. Error: {str(e)}"
+            return f"{temp}°C y {description}"  # Asegúrate que devuelve un string formateado
