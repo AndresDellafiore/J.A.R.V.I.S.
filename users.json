@@ -1,0 +1,10 @@
+{
+    "users": [
+        {
+            "name": "Andrés",
+            "voice_sample": null,
+            "register_date": "2023-11-15 10:30:00",
+            "preferences": {}
+        }
+    ]
+}
