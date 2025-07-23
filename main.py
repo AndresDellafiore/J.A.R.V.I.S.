@@ -5,13 +5,14 @@ import time
 import json
 import os
 import random
-from modules.weather import WeatherModule
-from modules.news import NewsModule
-from modules.system import SystemModule
-from modules.spotify import SpotifyModule
+from JARVIS.modules.weather import WeatherModule
+from JARVIS.modules.news import NewsModule
+from JARVIS.modules.system import SystemModule
+from JARVIS.modules.spotify import SpotifyModule
 from jarvis_gui import JARVISGUI
 from config import load_config
 from user_manager import UserManager
+
 
 class JARVISResponses:
     @staticmethod
