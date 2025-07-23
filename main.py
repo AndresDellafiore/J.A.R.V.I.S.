@@ -7,11 +7,11 @@ sys.path.insert(0, os.path.join(BASE_DIR, 'backend'))  # Añade backend al path
 
 # Importaciones CORREGIDAS según estructura exacta
 try:
-    from backend.modules.voice_engine import VoiceEngine  # Ahora debería funcionar
-    from backend.core.weather import WeatherModule
-    from backend.core.news import NewsModule
-    from backend.core.system import SystemModule
-    from backend.core.spotify import SpotifyModule
+    from backend.core.voice_engine import VoiceEngine  # Ahora debería funcionar
+    from backend.modules.weather import WeatherModule
+    from backend.modules.news import NewsModule
+    from backend.modules.system import SystemModule
+    from backend.modules.spotify import SpotifyModule
     from jarvis_gui import JARVISGUI
     from user_manager import UserManager
     from config import load_config
@@ -38,11 +38,11 @@ setup_paths()
 
 # Ahora las importaciones funcionarán desde cualquier lugar
 try:
-    from backend.modules.voice_engine import VoiceEngine
-    from backend.core.weather import WeatherModule
-    from backend.core.news import NewsModule
-    from backend.core.system import SystemModule
-    from backend.core.spotify import SpotifyModule
+    from backend.core.voice_engine import VoiceEngine
+    from backend.modules.weather import WeatherModule
+    from backend.modules.news import NewsModule
+    from backend.modules.system import SystemModule
+    from backend.modules.spotify import SpotifyModule
     from jarvis_gui import JARVISGUI
     from user_manager import UserManager
     from config import load_config
@@ -57,12 +57,12 @@ except ImportError as e:
     ├── config.py
     ├── backend/
     │   ├── __init__.py
-    │   ├── modules/
+    │   ├── core/
     │   │   ├── __init__.py
     │   │   ├── commands.py
     │   │   ├── exceptions.py
     │   │   └── voice_engine.py
-    │   └── core/
+    │   └── modules/
     │       ├── __init__.py
     │       ├── weather.py
     │       ├── news.py
@@ -74,11 +74,11 @@ except ImportError as e:
     sys.exit(1)
 
 # Importaciones corregidas según tu estructura
-from backend.modules.voice_engine import VoiceEngine
-from backend.core.weather import WeatherModule
-from backend.core.news import NewsModule
-from backend.core.system import SystemModule
-from backend.core.spotify import SpotifyModule
+from backend.core.voice_engine import VoiceEngine
+from backend.modules.weather import WeatherModule
+from backend.modules.news import NewsModule
+from backend.modules.system import SystemModule
+from backend.modules.spotify import SpotifyModule
 from jarvis_gui import JARVISGUI
 from user_manager import UserManager
 from config import load_config
