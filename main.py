@@ -1,18 +1,25 @@
-import speech_recognition as sr
-import pyttsx3
-import threading
-import time
-import json
+import sys
 import os
-import random
-from JARVIS.modules.weather import WeatherModule
-from JARVIS.modules.news import NewsModule
-from JARVIS.modules.system import SystemModule
-from JARVIS.modules.spotify import SpotifyModule
-from jarvis_gui import JARVISGUI
-from config import load_config
-from user_manager import UserManager
 
+# Configuración de paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR)
+
+# Importaciones corregidas según tu estructura
+from backend.modules.voice_engine import VoiceEngine
+from backend.core.weather import WeatherModule
+from backend.core.news import NewsModule
+from backend.core.system import SystemModule
+from backend.core.spotify import SpotifyModule
+from jarvis_gui import JARVISGUI
+from user_manager import UserManager
+from config import load_config
+
+class JARVIS:
+    def __init__(self):
+        self.config = load_config()
+        self.running = True
+        self.voice_engine = VoiceEngine()  # Ejemplo de uso del módulo voice_engine
 
 class JARVISResponses:
     @staticmethod
